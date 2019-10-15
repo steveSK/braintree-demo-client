@@ -1,0 +1,52 @@
+<h1>{{title}}</h1>
+<p> Welcome to {{title}} </p>
+
+<div id="dropin-wrapper">
+  <div id="checkout-message"></div>
+  <div id="dropin-container"></div>
+  <button id="submit-button">Submit payment</button>
+</div>
+
+<script>
+  var apiUrl = 'http://localhost:8080/api/payment/gateway'
+  var button = document.querySelector('#submit-button');
+  var context = {title: 'Braintree'}
+
+  braintree.dropin.create({
+    // Insert your tokenization key here
+    authorization: 'sandbox_4xq5wdmt_9mpqcxwvsv9x53f9',
+    container: '#dropin-container'
+  }, function (createErr, instance) {
+    button.addEventListener('click', function () {
+      instance.requestPaymentMethod(function (requestPaymentMethodErr, payload) {
+        // When the user clicks on the 'Submit payment' button this code will send the
+        // encrypted payment information in a variable called a payment method nonce
+        console.info('nonce: ' + payload.nonce)
+        $.ajax({
+          type: 'POST',
+          url: apiUrl + '/checkout',
+          data: payload.nonce,
+          contentType: 'text/plain'
+        }).done(function(result) {
+          // Tear down the Drop-in UI
+          instance.teardown(function (teardownErr) {
+            if (teardownErr) {
+              console.error('Could not tear down Drop-in UI!');
+            } else {
+              console.info('Drop-in UI has been torn down!');
+              // Remove the 'Submit payment' button
+              $('#submit-button').remove();
+            }
+          });
+
+          if (result.success) {
+            $('#checkout-message').html('<h1>Success</h1><p>Your Drop-in UI is working! Check your <a href="https://sandbox.braintreegateway.com/login">sandbox Control Panel</a> for your test transactions.</p><p>Refresh to try another transaction.</p>');
+          } else {
+            console.log(result);
+            $('#checkout-message').html('<h1>Error</h1><p>Check your console.</p>');
+          }
+        });
+      });
+    });
+  });
+</script>
