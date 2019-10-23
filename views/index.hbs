@@ -12,9 +12,19 @@
   var button = document.querySelector('#submit-button');
   var context = {title: 'Braintree'}
 
+
+  $.ajax({
+      type: 'GET',
+      url: apiUrl + '/client_token',
+      contentType: 'text/plain'
+    }).done(function(clientToken) {
+
+  console.log("client token " + clientToken);
+
   braintree.dropin.create({
     // Insert your tokenization key here
-    authorization: 'sandbox_4xq5wdmt_9mpqcxwvsv9x53f9',
+  //  authorization: 'sandbox_4xq5wdmt_9mpqcxwvsv9x53f9',
+    authorization: clientToken,
     container: '#dropin-container'
   }, function (createErr, instance) {
     button.addEventListener('click', function () {
@@ -49,4 +59,5 @@
       });
     });
   });
+});
 </script>
